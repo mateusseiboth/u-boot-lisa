@@ -17,7 +17,7 @@ without the countdown; **Volume Up/Down** move, **Power** selects):
 | **HakiOS over fastboot** | the loader, waiting for `fastboot stage x.hkub` + `fastboot oem run:hakios load fastboot` + `fastboot continue` |
 | **Enable serial console gadget** | USB ACM console |
 | **Enable fastboot mode** | the fastboot screen |
-| **USB disk for the PC (UFS LUN 0)** | `ums 0 scsi 0`: the PC reads and writes the phone's LUN 0 (`sda`) while no OS runs; ejecting it on the PC restarts the phone |
+| **USB disk for the PC (UFS LUN 0)** | `ums 0 scsi 0`: the PC reads and writes the phone's LUN 0 (`sda`, seen on the PC as `Linux UMS disk 0`) while no OS runs; ejecting it on the PC restarts the phone, a key opens the menu, and a failure leaves U-Boot's fastboot up with the reason in `fastboot getvar ums` |
 | **What is in memory** / **Board info** / **Reset** / **Drop to shell** | diagnostics |
 
 ## Choosing the OS from the host (no buttons)
@@ -47,10 +47,12 @@ Change it and rebuild to pick the silent default; Volume Down always reaches the
 | `board/qualcomm/hakios-lisa.env` | the boot environment: the menu, the pmOS boot (blkmap + sysboot), the HakiOS loader from memory or fastboot |
 | `dts/upstream/src/arm64/qcom/sm7325-xiaomi-lisa.dts` | the device tree U-Boot builds against |
 | `drivers/video/u_boot_logo.bmp`, `fastboot_logo.bmp` | the boot/fastboot splash |
+| `cmd/usb_mass_storage.c` | `ums` leaves why it ended in `ums_end` (`eject`, `key`, `init`, `udc -19`, `gadget -16`, ...) |
+| `drivers/usb/gadget/f_mass_storage.c` | only START STOP UNIT with LoEj ends `ums` (as in Linux); a plain start or stop no longer does |
 
 `./build.sh` builds it in a private copy of HakiOS's U-Boot tree (`darwin-lisa/.work/u-boot-ossel/src`) and writes
 `out/u-boot-lisa-ossel.img`. Otherwise, these files go into a mainline U-Boot checkout (`configs/`, `board/qualcomm/`, `dts/upstream/src/arm64/qcom/`,
-`drivers/video/`), then `make hakios_lisa_defconfig && make`.
+`drivers/video/`, `cmd/`, `drivers/usb/gadget/`), then `make hakios_lisa_defconfig && make`.
 
 ## Build
 

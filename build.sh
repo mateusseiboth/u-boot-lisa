@@ -22,6 +22,9 @@ cp "$HERE/board/qualcomm/hakios-lisa.env" "$SRC/board/qualcomm/"
 cp "$HERE/configs/hakios_lisa_defconfig" "$SRC/configs/"
 cp "$HERE/dts/upstream/src/arm64/qcom/sm7325-xiaomi-lisa.dts" "$SRC/dts/upstream/src/arm64/qcom/"
 cp "$HERE"/drivers/video/*.bmp "$SRC/drivers/video/"
+# ums: says why it ended (ums_end), and only a real eject ends it
+cp "$HERE/cmd/usb_mass_storage.c" "$SRC/cmd/"
+cp "$HERE/drivers/usb/gadget/f_mass_storage.c" "$SRC/drivers/usb/gadget/"
 make -C "$SRC" -s O=build-lisa hakios_lisa_defconfig
 make -C "$SRC" -s O=build-lisa -j"$(nproc)"
 gzip -9 -n -c "$SRC/build-lisa/u-boot.bin" >"$SRC/../u-boot.bin.gz"
