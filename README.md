@@ -17,7 +17,17 @@ without the countdown; **Volume Up/Down** move, **Power** selects):
 | **HakiOS over fastboot** | the loader, waiting for `fastboot stage x.hkub` + `fastboot oem run:hakios load fastboot` + `fastboot continue` |
 | **Enable serial console gadget** | USB ACM console |
 | **Enable fastboot mode** | the fastboot screen |
+| **USB disk for the PC (UFS LUN 0)** | `ums 0 scsi 0`: the PC reads and writes the phone's LUN 0 (`sda`) while no OS runs; ejecting it on the PC restarts the phone |
 | **What is in memory** / **Board info** / **Reset** / **Drop to shell** | diagnostics |
+
+## Choosing the OS from the host (no buttons)
+
+While the phone sits in the HakiOS loader, `fastboot oem bootos:pmos` (or `ums`, `uboot`, `menu`) makes the loader
+stop its USB function and its watchdog and exit back to U-Boot, after leaving a one-shot request in the last page of
+the payload window (`0xf3fff000`, inside `hakios-payload@f0000000`). U-Boot's `osel_check` reads it, clears it and
+runs the target. No reset is involved: every reset on lisa is a PMIC hard reset, so a memory cookie would not
+survive one. Without a request nothing changes (menu, 5 s, HakiOS), and rebooting pmOS lands in HakiOS again. The
+loader side is `darwin-lisa/loader/oem-bootos.patch`; the host side is `darwin-lisa/tools/bootos.sh`.
 
 The default entry and countdown are set in the `bootcmd` line of
 [`board/qualcomm/hakios-lisa.env`](board/qualcomm/hakios-lisa.env):
@@ -38,7 +48,8 @@ Change it and rebuild to pick the silent default; Volume Down always reaches the
 | `dts/upstream/src/arm64/qcom/sm7325-xiaomi-lisa.dts` | the device tree U-Boot builds against |
 | `drivers/video/u_boot_logo.bmp`, `fastboot_logo.bmp` | the boot/fastboot splash |
 
-These files go into a mainline U-Boot checkout (`configs/`, `board/qualcomm/`, `dts/upstream/src/arm64/qcom/`,
+`./build.sh` builds it in a private copy of HakiOS's U-Boot tree (`darwin-lisa/.work/u-boot-ossel/src`) and writes
+`out/u-boot-lisa-ossel.img`. Otherwise, these files go into a mainline U-Boot checkout (`configs/`, `board/qualcomm/`, `dts/upstream/src/arm64/qcom/`,
 `drivers/video/`), then `make hakios_lisa_defconfig && make`.
 
 ## Build
