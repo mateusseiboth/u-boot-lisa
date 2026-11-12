@@ -25,6 +25,8 @@ cp "$HERE"/drivers/video/*.bmp "$SRC/drivers/video/"
 # ums: says why it ended (ums_end), and only a real eject ends it
 cp "$HERE/cmd/usb_mass_storage.c" "$SRC/cmd/"
 cp "$HERE/drivers/usb/gadget/f_mass_storage.c" "$SRC/drivers/usb/gadget/"
+# sysboot: the environment variable pxe_append is added to the extlinux append line (the recovery-shell entry)
+cp "$HERE/boot/pxe_utils.c" "$SRC/boot/"
 make -C "$SRC" -s O=build-lisa hakios_lisa_defconfig
 make -C "$SRC" -s O=build-lisa -j"$(nproc)"
 gzip -9 -n -c "$SRC/build-lisa/u-boot.bin" >"$SRC/../u-boot.bin.gz"

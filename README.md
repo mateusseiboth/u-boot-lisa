@@ -13,6 +13,7 @@ without the countdown; **Volume Up/Down** move, **Power** selects):
 | Entry | What |
 |---|---|
 | **postmarketOS** | boots pmOS from its image inside `userdata` (blkmap maps userdata as a disk, `sysboot` reads the image's `extlinux.conf`) |
+| **postmarketOS (recovery shell)** | the same boot with `pmos.debug-shell` added to the kernel command line: pmOS's initramfs stops before mounting the root, with a shell on telnet `172.16.42.1:23` over the USB network (`darwin-lisa/tools/pmos-debug-shell.py` runs commands there; `pmos_continue_boot` goes on to pmOS). The option comes from U-Boot's own `pxe_append` variable (`boot/pxe_utils.c` adds it to the extlinux append line), so boot-deploy rewriting `extlinux.conf` does not lose it; the normal entry clears the variable first |
 | **HakiOS** | starts the HakiOS loader from the boot image's ramdisk, or waits for the host over fastboot |
 | **HakiOS over fastboot** | the loader, waiting for `fastboot stage x.hkub` + `fastboot oem run:hakios load fastboot` + `fastboot continue` |
 | **Enable serial console gadget** | USB ACM console |
@@ -22,7 +23,7 @@ without the countdown; **Volume Up/Down** move, **Power** selects):
 
 ## Choosing the OS from the host (no buttons)
 
-While the phone sits in the HakiOS loader, `fastboot oem bootos:pmos` (or `ums`, `uboot`, `menu`) makes the loader
+While the phone sits in the HakiOS loader, `fastboot oem bootos:pmos` (or `ums`, `uboot`, `menu`, `pmos-shell`) makes the loader
 stop its USB function and its watchdog and exit back to U-Boot, after leaving a one-shot request in the last page of
 the payload window (`0xf3fff000`, inside `hakios-payload@f0000000`). U-Boot's `osel_check` reads it, clears it and
 runs the target. No reset is involved: every reset on lisa is a PMIC hard reset, so a memory cookie would not
@@ -33,10 +34,11 @@ The default entry and countdown are set in the `bootcmd` line of
 [`board/qualcomm/hakios-lisa.env`](board/qualcomm/hakios-lisa.env):
 
 ```
-bootcmd=setenv bootmenu_default 1; bootmenu 5; run menucmd
+bootcmd=setenv bootmenu_default 2; bootmenu 5; run menucmd
 ```
 
-`bootmenu_default` is the entry chosen when the countdown ends: **0 = postmarketOS**, **1 = HakiOS**.
+`bootmenu_default` is the entry chosen when the countdown ends: **0 = postmarketOS**, **1 = postmarketOS (recovery
+shell)**, **2 = HakiOS**.
 Change it and rebuild to pick the silent default; Volume Down always reaches the menu either way.
 
 ## Files
